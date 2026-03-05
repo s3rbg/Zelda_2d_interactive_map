@@ -7,418 +7,401 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="OoS Mapa">
+<meta name="apple-mobile-web-app-title" content="Zelda 2D Map">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icon.svg">
-<title>Zelda 2D — Mapa</title>
+<title>Zelda 2D — Map Notes</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
 
-  :root {
-    --bg: #0a0f1e;
-    --panel: #111827;
-    --border: #2a4a2a;
-    --green: #4ade80;
-    --green-dim: #166534;
-    --gold: #fbbf24;
-    --gold-dim: #78350f;
-    --red: #f87171;
-    --blue: #60a5fa;
-    --text: #d1fae5;
-    --text-dim: #6b7280;
-    --tile-empty: #1a2e1a;
-    --tile-hover: #1f3d1f;
-    --tile-noted: #1a3a0e;
-    --tile-noted-border: #4ade80;
-    --modal-bg: #0d1a0d;
-  }
+:root {
+  --bg: #0a0f1e;
+  --panel: #111827;
+  --border: #2a4a2a;
+  --green: #4ade80;
+  --green-dim: #166534;
+  --gold: #fbbf24;
+  --gold-dim: #78350f;
+  --red: #f87171;
+  --text: #d1fae5;
+  --text-dim: #6b7280;
+  --tile-empty: #1a2e1a;
+  --tile-hover: #1f3d1f;
+  --tile-noted: #1a3a0e;
+  --tile-noted-border: #4ade80;
+  --modal-bg: #0d1a0d;
+  --cell-size: 40px;
+}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'VT323', monospace;
-    font-size: 18px;
-    min-height: 100vh;
-    overflow-x: hidden;
-    background-image:
-      radial-gradient(ellipse at 20% 0%, rgba(74,222,128,0.05) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 100%, rgba(96,165,250,0.05) 0%, transparent 50%);
-    /* Safe area for notch phones */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'VT323', monospace;
+  font-size: 18px;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(74,222,128,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(96,165,250,0.05) 0%, transparent 50%);
+}
 
-  /* HEADER */
-  .header {
-    background: var(--panel);
-    border-bottom: 3px solid var(--green-dim);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    box-shadow: 0 2px 20px rgba(74,222,128,0.15);
-  }
-  .header-icon { font-size: 22px; animation: spin 6s steps(8) infinite; }
-  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-  .header h1 {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    color: var(--gold);
-    line-height: 1.5;
-    text-shadow: 0 0 10px rgba(251,191,36,0.5);
-  }
-  .header h1 span { display: block; color: var(--green); font-size: 7px; margin-top: 2px; }
-  .header-stats { margin-left: auto; font-size: 13px; color: var(--text-dim); text-align: right; line-height: 1.4; }
-  .header-stats b { color: var(--green); }
+/* HEADER */
+.header {
+  background: var(--panel);
+  border-bottom: 3px solid var(--green-dim);
+  padding: 10px 16px;
+  display: flex; align-items: center; gap: 10px;
+  position: sticky; top: 0; z-index: 20;
+  box-shadow: 0 2px 20px rgba(74,222,128,0.15);
+}
+.header-icon { font-size: 22px; animation: spin 6s steps(8) infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.header h1 { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--gold); line-height: 1.6; text-shadow: 0 0 10px rgba(251,191,36,0.5); }
+.header h1 span { display: block; color: var(--green); font-size: 7px; }
+.header-stats { margin-left: auto; font-size: 13px; color: var(--text-dim); text-align: right; line-height: 1.4; }
+.header-stats b { color: var(--green); }
 
-  /* CONTROLS */
-  .controls {
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
-    background: rgba(17,24,39,0.9);
-  }
-  .legend-item { display: flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 13px; }
-  .legend-dot { width: 12px; height: 12px; border: 2px solid; }
-  .dot-empty { background: var(--tile-empty); border-color: var(--border); }
-  .dot-noted { background: var(--tile-noted); border-color: var(--tile-noted-border); }
+/* TABS */
+.tabs-bar {
+  background: rgba(17,24,39,0.95);
+  border-bottom: 2px solid var(--border);
+  display: flex; align-items: stretch;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; min-height: 44px;
+}
+.tabs-bar::-webkit-scrollbar { display: none; }
+.tab {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0 14px;
+  font-family: 'VT323', monospace; font-size: 17px;
+  color: var(--text-dim);
+  border-right: 1px solid var(--border);
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.tab:hover { background: rgba(74,222,128,0.05); color: var(--text); }
+.tab.active { background: var(--green-dim); color: var(--green); border-bottom: 3px solid var(--green); }
+.tab-delete { font-size: 13px; color: var(--text-dim); padding: 1px 4px; opacity: 0.4; line-height: 1; }
+.tab:hover .tab-delete, .tab.active .tab-delete { opacity: 1; }
+.tab-delete:hover { color: var(--red) !important; opacity: 1 !important; }
+.btn-new-tab {
+  display: flex; align-items: center; gap: 5px;
+  padding: 0 16px;
+  font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--green);
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  background: none; border: none; border-left: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.btn-new-tab:hover { background: rgba(74,222,128,0.08); }
 
-  .size-controls { margin-left: auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+/* EMPTY STATE */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 70vh; gap: 24px; padding: 32px; text-align: center;
+}
+.empty-icon { font-size: 64px; animation: float 3s ease-in-out infinite; }
+@keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.empty-title { font-family: 'Press Start 2P', monospace; font-size: 11px; color: var(--gold); text-shadow: 0 0 15px rgba(251,191,36,0.4); line-height: 1.8; }
+.empty-sub { font-size: 18px; color: var(--text-dim); max-width: 280px; line-height: 1.5; }
+.btn-create-big {
+  background: var(--green-dim); border: 3px solid var(--green); color: var(--green);
+  font-family: 'Press Start 2P', monospace; font-size: 10px; padding: 16px 28px;
+  cursor: pointer; text-shadow: 0 0 10px rgba(74,222,128,0.5);
+  box-shadow: 0 0 20px rgba(74,222,128,0.2); transition: all 0.15s; letter-spacing: 1px;
+}
+.btn-create-big:hover { background: rgba(74,222,128,0.2); box-shadow: 0 0 30px rgba(74,222,128,0.35); transform: scale(1.03); }
+.btn-create-big:active { transform: scale(0.98); }
 
-  .grid-size-btn {
-    background: var(--panel);
-    border: 2px solid var(--green-dim);
-    color: var(--text);
-    font-family: 'VT323', monospace;
-    font-size: 16px;
-    padding: 3px 10px;
-    cursor: pointer;
-    transition: all 0.1s;
-    white-space: nowrap;
-  }
-  .grid-size-btn:hover, .grid-size-btn.active {
-    background: var(--green-dim); border-color: var(--green); color: var(--green);
-  }
+/* MAP */
+.map-view { display: none; }
+.map-view.active { display: block; }
+.map-toolbar {
+  padding: 8px 16px; display: flex; align-items: center; gap: 10px;
+  border-bottom: 1px solid var(--border); background: rgba(17,24,39,0.8); flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: 5px; color: var(--text-dim); font-size: 13px; }
+.legend-dot { width: 12px; height: 12px; border: 2px solid; }
+.dot-empty { background: var(--tile-empty); border-color: var(--border); }
+.dot-noted { background: var(--tile-noted); border-color: var(--tile-noted-border); }
+.map-wrapper { padding: 16px; overflow: auto; -webkit-overflow-scrolling: touch; }
+.map-label-row { display: flex; margin-bottom: 4px; padding-left: 30px; }
+.col-label { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--text-dim); text-align: center; flex: 0 0 var(--cell-size); width: var(--cell-size); }
+.map-row { display: flex; align-items: center; margin-bottom: 2px; }
+.row-label { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--text-dim); width: 28px; flex-shrink: 0; text-align: right; padding-right: 4px; }
+.grid { display: grid; gap: 2px; }
+.cell {
+  width: var(--cell-size); height: var(--cell-size);
+  background: var(--tile-empty); border: 2px solid var(--border);
+  cursor: pointer; position: relative;
+  transition: border-color 0.1s, background 0.1s;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.cell:hover { background: var(--tile-hover); border-color: var(--green-dim); z-index: 1; }
+.cell.has-data { background: var(--tile-noted); border-color: var(--tile-noted-border); box-shadow: 0 0 6px rgba(74,222,128,0.3); }
+.cell.has-data::after { content: ''; position: absolute; top: 2px; right: 2px; width: 5px; height: 5px; background: var(--green); box-shadow: 0 0 4px var(--green); animation: blink 2s steps(2) infinite; }
+@keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+.cell-emoji { font-size: calc(var(--cell-size) * 0.45); line-height: 1; pointer-events: none; }
+.cell-coords { position: absolute; bottom: 1px; left: 2px; font-family: 'Press Start 2P', monospace; font-size: 5px; color: var(--text-dim); opacity: 0.5; pointer-events: none; }
 
-  /* Custom size row */
-  .custom-size-row {
-    display: none;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: rgba(17,24,39,0.9);
-    border-bottom: 1px solid var(--border);
-    flex-wrap: wrap;
-  }
-  .custom-size-row.visible { display: flex; }
-  .custom-size-row label { font-size: 14px; color: var(--text-dim); white-space: nowrap; }
-  .size-input {
-    width: 60px;
-    background: var(--bg);
-    border: 2px solid var(--green-dim);
-    color: var(--text);
-    font-family: 'VT323', monospace;
-    font-size: 18px;
-    padding: 2px 6px;
-    text-align: center;
-    outline: none;
-  }
-  .size-input:focus { border-color: var(--green); }
-  .btn-apply {
-    background: var(--green-dim);
-    border: 2px solid var(--green);
-    color: var(--green);
-    font-family: 'Press Start 2P', monospace;
-    font-size: 7px;
-    padding: 6px 12px;
-    cursor: pointer;
-  }
-  .btn-apply:hover { background: rgba(74,222,128,0.2); }
-  .size-note { font-size: 12px; color: var(--text-dim); }
+/* OVERLAYS */
+.overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  backdrop-filter: blur(4px); padding: 16px;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
 
-  /* MAP */
-  .map-wrapper { padding: 16px; overflow: auto; -webkit-overflow-scrolling: touch; }
-  .map-label-row { display: flex; margin-bottom: 4px; padding-left: 30px; }
-  .col-label {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 6px;
-    color: var(--text-dim);
-    text-align: center;
-    flex: 0 0 var(--cell-size);
-    width: var(--cell-size);
-  }
-  .map-row { display: flex; align-items: center; margin-bottom: 2px; }
-  .row-label {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 6px;
-    color: var(--text-dim);
-    width: 28px;
-    flex-shrink: 0;
-    text-align: right;
-    padding-right: 4px;
-  }
-  .grid { --cell-size: 40px; display: grid; gap: 2px; }
+/* CREATE MODAL */
+.create-modal {
+  background: var(--modal-bg); border: 3px solid var(--gold);
+  width: 100%; max-width: 420px;
+  box-shadow: 0 0 40px rgba(251,191,36,0.2);
+  transform: scale(0.93); transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+  max-height: 90vh; overflow-y: auto;
+}
+.overlay.open .create-modal { transform: scale(1); }
+.create-header { background: var(--gold-dim); padding: 12px 16px; border-bottom: 2px solid var(--gold); display: flex; align-items: center; gap: 10px; }
+.create-title { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--gold); text-shadow: 0 0 8px rgba(251,191,36,0.5); flex: 1; }
+.create-body { padding: 20px; display: flex; flex-direction: column; gap: 18px; }
+.field-label { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--gold); margin-bottom: 6px; }
+.field-sub { font-size: 14px; color: var(--text-dim); margin-bottom: 6px; }
+.text-input {
+  background: rgba(10,15,30,0.9); border: 2px solid var(--green-dim); color: var(--text);
+  font-family: 'VT323', monospace; font-size: 20px; padding: 8px 12px;
+  outline: none; width: 100%; transition: border-color 0.2s;
+}
+.text-input:focus { border-color: var(--green); box-shadow: 0 0 10px rgba(74,222,128,0.15); }
+.text-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+.preset-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.preset-btn { background: var(--panel); border: 2px solid var(--border); color: var(--text-dim); font-family: 'VT323', monospace; font-size: 16px; padding: 4px 12px; cursor: pointer; transition: all 0.1s; }
+.preset-btn:hover { border-color: var(--green-dim); color: var(--text); }
+.preset-btn.selected { background: rgba(74,222,128,0.1); border-color: var(--green); color: var(--green); }
+.size-row { display: flex; gap: 10px; align-items: flex-end; }
+.size-field { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.size-field label { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--text-dim); }
+.size-input { background: rgba(10,15,30,0.9); border: 2px solid var(--green-dim); color: var(--text); font-family: 'VT323', monospace; font-size: 22px; padding: 6px 10px; outline: none; width: 100%; text-align: center; transition: border-color 0.2s; }
+.size-input:focus { border-color: var(--green); }
+.size-sep { font-size: 28px; color: var(--text-dim); padding-bottom: 6px; }
+.btn-confirm-create {
+  background: var(--green-dim); border: 2px solid var(--green); color: var(--green);
+  font-family: 'Press Start 2P', monospace; font-size: 9px; padding: 14px;
+  cursor: pointer; letter-spacing: 1px; transition: all 0.15s; width: 100%;
+}
+.btn-confirm-create:hover { background: rgba(74,222,128,0.2); box-shadow: 0 0 15px rgba(74,222,128,0.3); }
 
-  .cell {
-    width: var(--cell-size);
-    height: var(--cell-size);
-    background: var(--tile-empty);
-    border: 2px solid var(--border);
-    cursor: pointer;
-    position: relative;
-    transition: border-color 0.1s, background 0.1s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .cell:hover { background: var(--tile-hover); border-color: var(--green-dim); z-index: 1; }
-  .cell.has-data {
-    background: var(--tile-noted);
-    border-color: var(--tile-noted-border);
-    box-shadow: 0 0 6px rgba(74,222,128,0.3);
-  }
-  .cell.has-data::after {
-    content: '';
-    position: absolute;
-    top: 2px; right: 2px;
-    width: 5px; height: 5px;
-    background: var(--green);
-    box-shadow: 0 0 4px var(--green);
-    animation: blink 2s steps(2) infinite;
-  }
-  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-  .cell-emoji { font-size: calc(var(--cell-size) * 0.45); line-height: 1; pointer-events: none; }
-  .cell-coords {
-    position: absolute;
-    bottom: 1px; left: 2px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 5px;
-    color: var(--text-dim);
-    opacity: 0.5;
-    pointer-events: none;
-  }
+/* CELL MODAL */
+.cell-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100;
+  display: flex; align-items: flex-end; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(3px);
+}
+.cell-overlay.open { opacity: 1; pointer-events: all; }
+.cell-modal {
+  background: var(--modal-bg); border: 3px solid var(--green); border-bottom: none;
+  width: 100%; max-width: 500px; max-height: 85vh; overflow-y: auto;
+  transform: translateY(100%); transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+  box-shadow: 0 -4px 40px rgba(74,222,128,0.3);
+}
+.cell-overlay.open .cell-modal { transform: translateY(0); }
+.cell-modal-header { background: var(--green-dim); padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--green); position: sticky; top: 0; }
+.cell-modal-title { font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--gold); flex: 1; line-height: 1.5; }
+.cell-coords-badge { font-size: 14px; color: var(--green); background: rgba(74,222,128,0.1); padding: 3px 8px; border: 1px solid var(--green-dim); white-space: nowrap; }
+.btn-close { background: none; border: 2px solid var(--red); color: var(--red); font-family: 'VT323', monospace; font-size: 18px; padding: 2px 8px; cursor: pointer; line-height: 1; }
+.btn-close:hover { background: rgba(248,113,113,0.2); }
+.cell-modal-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 100;
-    display: flex; align-items: flex-end; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.2s;
-    backdrop-filter: blur(3px);
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: var(--modal-bg);
-    border: 3px solid var(--green);
-    border-bottom: none;
-    width: 100%; max-width: 500px;
-    max-height: 85vh; overflow-y: auto;
-    transform: translateY(100%);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 -4px 40px rgba(74,222,128,0.3);
-  }
-  .modal-overlay.open .modal { transform: translateY(0); }
-  .modal-header {
-    background: var(--green-dim); padding: 10px 14px;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 2px solid var(--green);
-    position: sticky; top: 0;
-  }
-  .modal-title { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--gold); text-shadow: 0 0 8px rgba(251,191,36,0.6); flex: 1; }
-  .modal-coords { font-size: 14px; color: var(--green); background: rgba(74,222,128,0.1); padding: 3px 8px; border: 1px solid var(--green-dim); }
-  .btn-close { background: none; border: 2px solid var(--red); color: var(--red); font-family: 'VT323', monospace; font-size: 18px; padding: 2px 8px; cursor: pointer; line-height: 1; }
-  .btn-close:hover { background: rgba(248,113,113,0.2); }
-  .modal-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; }
+.section-title { font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--gold); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--gold-dim), transparent); }
+.tag-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-btn { background: var(--panel); border: 2px solid var(--border); color: var(--text-dim); font-family: 'VT323', monospace; font-size: 16px; padding: 4px 10px; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.1s; white-space: nowrap; }
+.tag-btn:hover { border-color: var(--green-dim); color: var(--text); }
+.tag-btn.selected { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); }
+.note-textarea { width: 100%; background: rgba(10,15,30,0.8); border: 2px solid var(--green-dim); color: var(--text); font-family: 'VT323', monospace; font-size: 18px; padding: 10px; resize: vertical; min-height: 90px; outline: none; line-height: 1.5; transition: border-color 0.2s; }
+.note-textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
+.note-textarea:focus { border-color: var(--green); box-shadow: 0 0 10px rgba(74,222,128,0.2); }
+.img-upload-area { border: 2px dashed var(--green-dim); padding: 14px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+.img-upload-area:hover { border-color: var(--green); background: rgba(74,222,128,0.05); }
+.img-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-hint { color: var(--text-dim); font-size: 15px; line-height: 1.5; }
+.upload-hint span { color: var(--green); }
+.img-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+.img-thumb { position: relative; aspect-ratio: 1; border: 2px solid var(--green-dim); overflow: hidden; cursor: pointer; }
+.img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.img-thumb:hover .img-delete { opacity: 1; }
+.img-delete { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.8); border: 1px solid var(--red); color: var(--red); font-size: 13px; font-family: 'VT323', monospace; padding: 0 4px; cursor: pointer; opacity: 0; transition: opacity 0.2s; line-height: 1.4; }
+.btn-row { display: flex; gap: 8px; }
+.btn-save { flex: 1; background: var(--green-dim); border: 2px solid var(--green); color: var(--green); font-family: 'Press Start 2P', monospace; font-size: 9px; padding: 12px; cursor: pointer; letter-spacing: 1px; transition: all 0.1s; }
+.btn-save:hover { background: rgba(74,222,128,0.2); }
+.btn-save:active { transform: scale(0.98); }
+.btn-cell-clear { background: none; border: 2px solid var(--red); color: var(--red); font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 12px; cursor: pointer; }
+.btn-cell-clear:hover { background: rgba(248,113,113,0.1); }
 
-  .section-title {
-    font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--gold);
-    margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
-  }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--gold-dim), transparent); }
+/* DELETE CONFIRM */
+.confirm-modal {
+  background: var(--modal-bg); border: 3px solid var(--red);
+  width: 100%; max-width: 380px;
+  box-shadow: 0 0 40px rgba(248,113,113,0.2);
+  transform: scale(0.93); transition: transform 0.25s cubic-bezier(0.16,1,0.3,1);
+}
+.overlay.open .confirm-modal { transform: scale(1); }
+.confirm-header { background: rgba(248,113,113,0.12); padding: 12px 16px; border-bottom: 2px solid var(--red); }
+.confirm-title { font-family: 'Press Start 2P', monospace; font-size: 9px; color: var(--red); }
+.confirm-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.confirm-text { font-size: 18px; color: var(--text); line-height: 1.6; }
+.confirm-name { color: var(--gold); font-size: 20px; }
+.confirm-warning { font-size: 15px; color: var(--red); line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; }
+.btn-confirm-delete { flex: 1; background: rgba(248,113,113,0.12); border: 2px solid var(--red); color: var(--red); font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 12px; cursor: pointer; transition: all 0.1s; }
+.btn-confirm-delete:hover { background: rgba(248,113,113,0.25); }
+.btn-cancel { flex: 1; background: var(--panel); border: 2px solid var(--border); color: var(--text-dim); font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 12px; cursor: pointer; transition: all 0.1s; }
+.btn-cancel:hover { border-color: var(--green-dim); color: var(--text); }
 
-  .tag-grid { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag-btn {
-    background: var(--panel); border: 2px solid var(--border); color: var(--text-dim);
-    font-family: 'VT323', monospace; font-size: 16px; padding: 4px 10px;
-    cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.1s; white-space: nowrap;
-  }
-  .tag-btn:hover { border-color: var(--green-dim); color: var(--text); }
-  .tag-btn.selected { background: rgba(74,222,128,0.15); border-color: var(--green); color: var(--green); box-shadow: 0 0 8px rgba(74,222,128,0.2); }
+/* LIGHTBOX */
+.lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+.lightbox.open { opacity: 1; pointer-events: all; }
+.lightbox img { max-width: 95vw; max-height: 90vh; object-fit: contain; border: 3px solid var(--green); }
+.lightbox-close { position: absolute; top: 16px; right: 16px; background: none; border: 2px solid var(--text); color: var(--text); font-family: 'VT323', monospace; font-size: 20px; padding: 4px 12px; cursor: pointer; }
 
-  .note-textarea {
-    width: 100%; background: rgba(10,15,30,0.8);
-    border: 2px solid var(--green-dim); color: var(--text);
-    font-family: 'VT323', monospace; font-size: 18px; padding: 10px;
-    resize: vertical; min-height: 90px; outline: none; line-height: 1.5;
-    transition: border-color 0.2s;
-  }
-  .note-textarea::placeholder { color: var(--text-dim); opacity: 0.6; }
-  .note-textarea:focus { border-color: var(--green); box-shadow: 0 0 10px rgba(74,222,128,0.2); }
+/* TOAST */
+.toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green-dim); border: 2px solid var(--green); color: var(--green); font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 10px 16px; z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap; pointer-events: none; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  .img-upload-area {
-    border: 2px dashed var(--green-dim); padding: 14px; text-align: center;
-    cursor: pointer; transition: all 0.2s; position: relative;
-  }
-  .img-upload-area:hover, .img-upload-area.dragover { border-color: var(--green); background: rgba(74,222,128,0.05); }
-  .img-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-  .upload-hint { color: var(--text-dim); font-size: 15px; line-height: 1.5; }
-  .upload-hint span { color: var(--green); }
+/* INSTALL */
+.install-banner { background: rgba(251,191,36,0.1); border-bottom: 2px solid var(--gold); padding: 8px 16px; display: none; align-items: center; gap: 10px; font-size: 14px; color: var(--gold); }
+.install-banner.visible { display: flex; }
+.btn-install { margin-left: auto; background: var(--gold-dim); border: 2px solid var(--gold); color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: 7px; padding: 6px 10px; cursor: pointer; white-space: nowrap; }
+.btn-dismiss { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; }
 
-  .img-gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
-  .img-thumb { position: relative; aspect-ratio: 1; border: 2px solid var(--green-dim); overflow: hidden; cursor: pointer; }
-  .img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .img-thumb:hover .img-delete { opacity: 1; }
-  .img-delete {
-    position: absolute; top: 2px; right: 2px;
-    background: rgba(0,0,0,0.8); border: 1px solid var(--red); color: var(--red);
-    font-size: 13px; font-family: 'VT323', monospace; padding: 0 4px;
-    cursor: pointer; opacity: 0; transition: opacity 0.2s; line-height: 1.4;
-  }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--green-dim); }
 
-  .btn-row { display: flex; gap: 8px; }
-  .btn-save {
-    flex: 1; background: var(--green-dim); border: 2px solid var(--green); color: var(--green);
-    font-family: 'Press Start 2P', monospace; font-size: 9px; padding: 12px;
-    cursor: pointer; text-shadow: 0 0 8px rgba(74,222,128,0.5); transition: all 0.1s; letter-spacing: 1px;
-  }
-  .btn-save:hover { background: rgba(74,222,128,0.2); box-shadow: 0 0 15px rgba(74,222,128,0.3); }
-  .btn-save:active { transform: scale(0.98); }
-  .btn-clear { background: none; border: 2px solid var(--red); color: var(--red); font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 12px; cursor: pointer; }
-  .btn-clear:hover { background: rgba(248,113,113,0.1); }
+body::before { content: ''; position: fixed; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; z-index: 1000; }
 
-  /* Lightbox */
-  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 200; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-  .lightbox.open { opacity: 1; pointer-events: all; }
-  .lightbox img { max-width: 95vw; max-height: 90vh; object-fit: contain; border: 3px solid var(--green); }
-  .lightbox-close { position: absolute; top: 16px; right: 16px; background: none; border: 2px solid var(--text); color: var(--text); font-family: 'VT323', monospace; font-size: 20px; padding: 4px 12px; cursor: pointer; }
-
-  /* Toast */
-  .toast {
-    position: fixed; bottom: 30px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--green-dim); border: 2px solid var(--green); color: var(--green);
-    font-family: 'Press Start 2P', monospace; font-size: 8px; padding: 10px 16px;
-    z-index: 300; opacity: 0; transition: all 0.3s; white-space: nowrap;
-    text-shadow: 0 0 8px rgba(74,222,128,0.5); pointer-events: none;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* Install banner */
-  .install-banner {
-    background: rgba(251,191,36,0.1); border: 2px solid var(--gold);
-    padding: 8px 16px; display: none; align-items: center; gap: 10px;
-    font-size: 14px; color: var(--gold);
-  }
-  .install-banner.visible { display: flex; }
-  .btn-install {
-    margin-left: auto; background: var(--gold-dim); border: 2px solid var(--gold);
-    color: var(--gold); font-family: 'Press Start 2P', monospace; font-size: 7px;
-    padding: 6px 10px; cursor: pointer; white-space: nowrap;
-  }
-  .btn-install:hover { background: rgba(251,191,36,0.2); }
-  .btn-dismiss { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; padding: 0 4px; }
-
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--green-dim); }
-  ::-webkit-scrollbar-thumb:hover { background: var(--green); }
-
-  body::before {
-    content: ''; position: fixed; inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
-    pointer-events: none; z-index: 1000;
-  }
-
-  @media (min-width: 500px) {
-    .modal-overlay { align-items: center; }
-    .modal { border: 3px solid var(--green); max-height: 80vh; }
-  }
+@media (min-width: 500px) {
+  .cell-overlay { align-items: center; }
+  .cell-modal { border: 3px solid var(--green); max-height: 80vh; }
+}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-icon">🍂</div>
-  <div>
-    <h1>Zelda 2D<span>▸ EXPLORER'S MAP</span></h1>
-  </div>
-  <div class="header-stats" id="headerStats"><b>0</b> casillas<br>anotadas</div>
+  <div class="header-icon">🗡️</div>
+  <div><h1>ZELDA 2D<span>▸ MAP NOTES</span></h1></div>
+  <div class="header-stats" id="headerStats"></div>
 </div>
 
-<!-- Install banner (shown if PWA installable) -->
 <div class="install-banner" id="installBanner">
-  <span>📱 Instala la app para usarla sin navegador</span>
-  <button class="btn-install" id="btnInstall">INSTALAR</button>
+  <span>📱 Install app for offline use</span>
+  <button class="btn-install" id="btnInstall">INSTALL</button>
   <button class="btn-dismiss" id="btnDismiss">✕</button>
 </div>
 
-<div class="controls">
-  <span class="legend-item"><div class="legend-dot dot-empty"></div> Vacía</span>
-  <span class="legend-item"><div class="legend-dot dot-noted"></div> Con nota</span>
-  <div class="size-controls">
-    <span style="font-size:13px; color:var(--text-dim)">MAPA:</span>
-    <button class="grid-size-btn active" data-size="16">16×16</button>
-    <button class="grid-size-btn" data-size="20">20×20</button>
-    <button class="grid-size-btn" data-size="10">10×10</button>
-    <button class="grid-size-btn" data-size="custom" id="btnCustom">✏ Custom</button>
+<div class="tabs-bar" id="tabsBar">
+  <button class="btn-new-tab" id="btnNewTab">＋ NEW MAP</button>
+</div>
+
+<div class="empty-state" id="emptyState">
+  <div class="empty-icon">🗺️</div>
+  <div class="empty-title">NO MAPS YET</div>
+  <div class="empty-sub">Create your first map to start taking notes on your adventure</div>
+  <button class="btn-create-big" id="btnCreateFirst">＋ CREATE MAP</button>
+</div>
+
+<div id="mapContainer"></div>
+
+<!-- CREATE MAP -->
+<div class="overlay" id="createOverlay">
+  <div class="create-modal">
+    <div class="create-header">
+      <div class="create-title">＋ NEW MAP</div>
+      <button class="btn-close" onclick="closeCreateModal()">✕</button>
+    </div>
+    <div class="create-body">
+      <div>
+        <div class="field-label">MAP NAME</div>
+        <div class="field-sub">e.g. "Oracle of Seasons", "Link's Awakening"</div>
+        <input class="text-input" id="newMapName" type="text" placeholder="My Adventure..." maxlength="30">
+      </div>
+      <div>
+        <div class="field-label">GRID SIZE</div>
+        <div class="field-sub">Match the in-game overworld size</div>
+        <div class="preset-row" id="sizePresets">
+          <button class="preset-btn" data-cols="8" data-rows="8">8×8</button>
+          <button class="preset-btn selected" data-cols="16" data-rows="16">16×16</button>
+          <button class="preset-btn" data-cols="20" data-rows="20">20×20</button>
+          <button class="preset-btn" data-cols="0" data-rows="0">✏ Custom</button>
+        </div>
+        <div class="size-row" id="customSizeRowCreate" style="display:none">
+          <div class="size-field">
+            <label>COLS</label>
+            <input class="size-input" id="newMapCols" type="number" value="16" min="2" max="52">
+          </div>
+          <div class="size-sep">×</div>
+          <div class="size-field">
+            <label>ROWS</label>
+            <input class="size-input" id="newMapRows" type="number" value="16" min="2" max="99">
+          </div>
+        </div>
+      </div>
+      <button class="btn-confirm-create" id="btnConfirmCreate">▶ CREATE MAP</button>
+    </div>
   </div>
 </div>
 
-<!-- Custom size row -->
-<div class="custom-size-row" id="customSizeRow">
-  <label>COLS:</label>
-  <input type="number" class="size-input" id="customCols" value="16" min="2" max="52">
-  <label>FILAS:</label>
-  <input type="number" class="size-input" id="customRows" value="16" min="2" max="99">
-  <button class="btn-apply" id="btnApplyCustom">▶ APLICAR</button>
-  <span class="size-note">(máx. 52×99)</span>
-</div>
-
-<div class="map-wrapper">
-  <div class="map-label-row" id="colLabels"></div>
-  <div id="mapRows"></div>
-</div>
-
-<!-- MODAL -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="modalTitle">CASILLA</div>
-      <div class="modal-coords" id="modalCoords">A1</div>
-      <button class="btn-close" onclick="closeModal()">✕</button>
+<!-- CELL NOTE -->
+<div class="cell-overlay" id="cellOverlay">
+  <div class="cell-modal">
+    <div class="cell-modal-header">
+      <div class="cell-modal-title" id="cellModalTitle">CELL</div>
+      <div class="cell-coords-badge" id="cellCoordsBadge">A1</div>
+      <button class="btn-close" onclick="closeCellModal()">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="cell-modal-body">
       <div>
-        <div class="section-title">⚔ TIPO DE LUGAR</div>
+        <div class="section-title">⚔ TYPE</div>
         <div class="tag-grid" id="tagGrid"></div>
       </div>
       <div>
-        <div class="section-title">📜 NOTAS</div>
-        <textarea class="note-textarea" id="noteText" placeholder="Secretos, cofres, NPCs, pistas..." rows="4"></textarea>
+        <div class="section-title">📜 NOTES</div>
+        <textarea class="note-textarea" id="noteText" placeholder="Secrets, chests, NPCs, clues..." rows="4"></textarea>
       </div>
       <div>
-        <div class="section-title">📷 CAPTURAS</div>
+        <div class="section-title">📷 SCREENSHOTS</div>
         <div class="img-gallery" id="imgGallery"></div>
         <div class="img-upload-area" id="uploadArea">
           <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(event)">
-          <div class="upload-hint">📱 <span>Pulsa para subir captura</span><br>PNG, JPG, WebP</div>
+          <div class="upload-hint">📱 <span>Tap to upload screenshot</span><br>PNG, JPG, WebP</div>
         </div>
       </div>
       <div class="btn-row">
-        <button class="btn-save" onclick="saveCell()">▶ GUARDAR NOTA</button>
-        <button class="btn-clear" onclick="clearCell()">🗑</button>
+        <button class="btn-save" onclick="saveCell()">▶ SAVE NOTE</button>
+        <button class="btn-cell-clear" onclick="clearCell()">🗑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MAP CONFIRM -->
+<div class="overlay" id="deleteOverlay">
+  <div class="confirm-modal">
+    <div class="confirm-header">
+      <div class="confirm-title">⚠ DELETE MAP</div>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-text">You are about to permanently delete<br><span class="confirm-name" id="deleteMapName"></span></div>
+      <div class="confirm-warning">⚠ All notes and screenshots will be lost forever. This cannot be undone.</div>
+      <div class="confirm-btns">
+        <button class="btn-cancel" onclick="closeDeleteModal()">✕ CANCEL</button>
+        <button class="btn-confirm-delete" id="btnConfirmDelete">🗑 DELETE</button>
       </div>
     </div>
   </div>
@@ -427,183 +410,194 @@
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <img id="lightboxImg" src="" alt="">
-  <button class="lightbox-close">✕ CERRAR</button>
+  <button class="lightbox-close">✕ CLOSE</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── TAGS ───────────────────────────────────────────────────
 const TAGS = [
-  { emoji: '🗡️', label: 'Enemigo' },
-  { emoji: '💎', label: 'Cofre' },
-  { emoji: '🌿', label: 'Secreto' },
-  { emoji: '🏠', label: 'Pueblo' },
-  { emoji: '🗝️', label: 'Mazmorra' },
-  { emoji: '⚠️', label: 'Pendiente' },
-  { emoji: '🌊', label: 'Agua' },
-  { emoji: '🌲', label: 'Bosque' },
-  { emoji: '🔮', label: 'Esencia' },
-  { emoji: '💊', label: 'Corazón' },
-  { emoji: '🎶', label: 'Flautista' },
-  { emoji: '❓', label: 'Misterio' },
+  { emoji: '🗡️', label: 'Enemy' }, { emoji: '💎', label: 'Chest' },
+  { emoji: '🌿', label: 'Secret' }, { emoji: '🏠', label: 'Town' },
+  { emoji: '🗝️', label: 'Dungeon' }, { emoji: '⚠️', label: 'Pending' },
+  { emoji: '🌊', label: 'Water' }, { emoji: '🌲', label: 'Forest' },
+  { emoji: '🔮', label: 'Essence' }, { emoji: '💊', label: 'Heart' },
+  { emoji: '🎶', label: 'NPC' }, { emoji: '❓', label: 'Mystery' },
 ];
 
-// ─── STATE ──────────────────────────────────────────────────
-let gridCols = 16;
-let gridRows = 16;
+let maps = [];
+let activeMapId = null;
 let cellData = {};
 let selectedCell = null;
 let currentTags = new Set();
+let pendingDeleteId = null;
+let createCols = 16, createRows = 16;
 
-// ─── INDEXEDDB ──────────────────────────────────────────────
+// ── DB ────────────────────────────────────────────────────────
 let db;
-
 function openDB() {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open('oos-map-db', 2);
-    req.onupgradeneeded = e => {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open('zelda2d-v1', 1);
+    r.onupgradeneeded = e => {
       const d = e.target.result;
+      if (!d.objectStoreNames.contains('maps')) d.createObjectStore('maps', { keyPath: 'id' });
       if (!d.objectStoreNames.contains('cells')) d.createObjectStore('cells', { keyPath: 'id' });
-      if (!d.objectStoreNames.contains('settings')) d.createObjectStore('settings', { keyPath: 'key' });
     };
-    req.onsuccess = e => { db = e.target.result; resolve(db); };
-    req.onerror = () => reject(req.error);
+    r.onsuccess = e => { db = e.target.result; res(); };
+    r.onerror = () => rej(r.error);
   });
 }
+const dbOp = (store, mode, fn) => new Promise(res => {
+  const tx = db.transaction(store, mode);
+  const s = tx.objectStore(store);
+  const r = fn(s);
+  if (r) { r.onsuccess = () => res(r.result); r.onerror = () => res(null); }
+  else { tx.oncomplete = () => res(); tx.onerror = () => res(); }
+});
+const dbGet = (store, key) => dbOp(store, 'readonly', s => s.get(key));
+const dbPut = (store, val) => dbOp(store, 'readwrite', s => { s.put(val); return null; });
+const dbDel = (store, key) => dbOp(store, 'readwrite', s => { s.delete(key); return null; });
+const dbAll = (store) => dbOp(store, 'readonly', s => s.getAll());
 
-function dbGet(store, key) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => resolve(null);
-  });
-}
-
-function dbPut(store, value) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(store, 'readwrite');
-    const req = tx.objectStore(store).put(value);
-    req.onsuccess = () => resolve();
-    req.onerror = () => resolve();
-  });
-}
-
-function dbDelete(store, key) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(store, 'readwrite');
-    tx.objectStore(store).delete(key);
-    tx.oncomplete = () => resolve();
-  });
-}
-
-function dbGetAll(store) {
-  return new Promise((resolve) => {
-    const tx = db.transaction(store, 'readonly');
-    const req = tx.objectStore(store).getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => resolve([]);
-  });
-}
-
-async function loadData() {
-  const all = await dbGetAll('cells');
+async function loadAll() {
+  maps = (await dbAll('maps')) || [];
+  maps.sort((a, b) => a.createdAt - b.createdAt);
+  const allCells = (await dbAll('cells')) || [];
   cellData = {};
-  all.forEach(item => { cellData[item.id] = item.data; });
-
-  const sizeSetting = await dbGet('settings', 'gridSize');
-  if (sizeSetting) {
-    gridCols = sizeSetting.cols || 16;
-    gridRows = sizeSetting.rows || 16;
-    document.getElementById('customCols').value = gridCols;
-    document.getElementById('customRows').value = gridRows;
-    // Mark correct button active
-    updateSizeButtons();
-  }
+  allCells.forEach(c => {
+    if (!cellData[c.mapId]) cellData[c.mapId] = {};
+    cellData[c.mapId][c.cellKey] = c.data;
+  });
 }
 
-async function saveCellToDB(key, data) {
-  if (!data || (!data.note && !data.tags?.length && !data.images?.length)) {
-    await dbDelete('cells', key);
-  } else {
-    await dbPut('cells', { id: key, data });
-  }
+async function saveCellDB(mapId, cellKey, data) {
+  const id = `${mapId}__${cellKey}`;
+  const empty = !data || (!data.note && !data.tags?.length && !data.images?.length);
+  if (empty) await dbDel('cells', id);
+  else await dbPut('cells', { id, mapId, cellKey, data });
 }
 
-async function saveGridSizeToDB() {
-  await dbPut('settings', { key: 'gridSize', cols: gridCols, rows: gridRows });
+async function deleteMapDB(mapId) {
+  await dbDel('maps', mapId);
+  const all = await dbAll('cells');
+  for (const c of all) if (c.mapId === mapId) await dbDel('cells', c.id);
 }
 
-// ─── GRID BUILD ─────────────────────────────────────────────
-function buildGrid() {
-  const colLabels = document.getElementById('colLabels');
-  const mapRows = document.getElementById('mapRows');
-  colLabels.innerHTML = '';
-  mapRows.innerHTML = '';
+// ── RENDER ────────────────────────────────────────────────────
+function render() {
+  renderTabs();
+  renderMap();
+  document.getElementById('emptyState').style.display = maps.length === 0 ? 'flex' : 'none';
+  renderHeaderStats();
+}
 
-  const maxDim = Math.max(gridCols, gridRows);
-  const cellSize = maxDim <= 10 ? 54 : maxDim <= 16 ? 40 : maxDim <= 22 ? 34 : maxDim <= 30 ? 28 : 22;
-  document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+function renderHeaderStats() {
+  if (!activeMapId) { document.getElementById('headerStats').innerHTML = ''; return; }
+  const map = maps.find(m => m.id === activeMapId);
+  if (!map) return;
+  const count = Object.values(cellData[activeMapId] || {}).filter(d => d && (d.note || d.tags?.length || d.images?.length)).length;
+  document.getElementById('headerStats').innerHTML = `<b>${count}</b> noted<br><span style="font-size:11px;color:var(--text-dim)">${map.cols}×${map.rows}</span>`;
+}
 
-  // Col labels — use letters up to Z then AA, AB...
-  const spacer = document.createElement('div');
-  spacer.style.width = '28px';
-  spacer.style.flexShrink = '0';
-  colLabels.appendChild(spacer);
-  for (let x = 0; x < gridCols; x++) {
+function renderTabs() {
+  const bar = document.getElementById('tabsBar');
+  bar.querySelectorAll('.tab').forEach(t => t.remove());
+  const newBtn = document.getElementById('btnNewTab');
+  maps.forEach(map => {
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (map.id === activeMapId ? ' active' : '');
+    const name = document.createElement('span');
+    name.textContent = map.name;
+    tab.appendChild(name);
+    const del = document.createElement('span');
+    del.className = 'tab-delete';
+    del.textContent = '✕';
+    del.addEventListener('click', e => { e.stopPropagation(); openDeleteModal(map.id); });
+    tab.appendChild(del);
+    tab.addEventListener('click', () => { activeMapId = map.id; render(); });
+    bar.insertBefore(tab, newBtn);
+  });
+  bar.querySelector('.tab.active')?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' });
+}
+
+function renderMap() {
+  const container = document.getElementById('mapContainer');
+  container.innerHTML = '';
+  if (!activeMapId) return;
+  const map = maps.find(m => m.id === activeMapId);
+  if (!map) return;
+
+  const cellSize = calcCellSize(map.cols, map.rows);
+  const view = document.createElement('div');
+  view.className = 'map-view active';
+  view.id = `mapview-${map.id}`;
+  view.style.setProperty('--cell-size', cellSize + 'px');
+
+  view.innerHTML = `<div class="map-toolbar">
+    <span class="legend-item"><div class="legend-dot dot-empty"></div> Empty</span>
+    <span class="legend-item"><div class="legend-dot dot-noted"></div> Noted</span>
+    <span style="margin-left:auto;font-size:15px;color:var(--text-dim)"><b style="color:var(--gold)">${map.name}</b> &nbsp;${map.cols}×${map.rows}</span>
+  </div>`;
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'map-wrapper';
+
+  const colLabelRow = document.createElement('div');
+  colLabelRow.className = 'map-label-row';
+  colLabelRow.appendChild(Object.assign(document.createElement('div'), { style: 'width:28px;flex-shrink:0' }));
+  for (let x = 0; x < map.cols; x++) {
     const l = document.createElement('div');
-    l.className = 'col-label';
-    l.textContent = colName(x);
-    colLabels.appendChild(l);
+    l.className = 'col-label'; l.textContent = colName(x);
+    colLabelRow.appendChild(l);
   }
+  wrapper.appendChild(colLabelRow);
 
-  for (let y = 0; y < gridRows; y++) {
+  const mapData = cellData[map.id] || {};
+  for (let y = 0; y < map.rows; y++) {
     const row = document.createElement('div');
     row.className = 'map-row';
     const rl = document.createElement('div');
-    rl.className = 'row-label';
-    rl.textContent = String(y + 1).padStart(2, '0');
+    rl.className = 'row-label'; rl.textContent = String(y+1).padStart(2,'0');
     row.appendChild(rl);
     const rowGrid = document.createElement('div');
     rowGrid.className = 'grid';
-    rowGrid.style.gridTemplateColumns = `repeat(${gridCols}, var(--cell-size))`;
-
-    for (let x = 0; x < gridCols; x++) {
+    rowGrid.style.gridTemplateColumns = `repeat(${map.cols}, ${cellSize}px)`;
+    for (let x = 0; x < map.cols; x++) {
       const key = `${x}_${y}`;
       const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.key = key;
+      cell.className = 'cell'; cell.dataset.key = key;
       const coord = document.createElement('div');
-      coord.className = 'cell-coords';
-      coord.textContent = `${colName(x)}${y+1}`;
+      coord.className = 'cell-coords'; coord.textContent = `${colName(x)}${y+1}`;
       cell.appendChild(coord);
-      updateCellVisual(cell, key);
-      cell.addEventListener('click', () => openModal(x, y));
+      applyCellVisual(cell, mapData[key]);
+      cell.addEventListener('click', () => openCellModal(map.id, x, y));
       rowGrid.appendChild(cell);
     }
     row.appendChild(rowGrid);
-    mapRows.appendChild(row);
+    wrapper.appendChild(row);
   }
-  updateStats();
+  view.appendChild(wrapper);
+  container.appendChild(view);
+}
+
+function calcCellSize(cols, rows) {
+  const m = Math.max(cols, rows);
+  return m <= 10 ? 54 : m <= 16 ? 40 : m <= 22 ? 34 : m <= 30 ? 28 : 22;
 }
 
 function colName(x) {
   if (x < 26) return String.fromCharCode(65 + x);
-  return String.fromCharCode(65 + Math.floor(x / 26) - 1) + String.fromCharCode(65 + (x % 26));
+  return String.fromCharCode(64 + Math.floor(x/26)) + String.fromCharCode(65 + x%26);
 }
 
-function updateCellVisual(cellEl, key) {
-  const d = cellData[key];
-  const old = cellEl.querySelector('.cell-emoji');
-  if (old) old.remove();
+function applyCellVisual(cellEl, d) {
+  cellEl.querySelector('.cell-emoji')?.remove();
   if (d && (d.note || d.images?.length || d.tags?.length)) {
     cellEl.classList.add('has-data');
-    if (d.tags?.length > 0) {
+    if (d.tags?.length) {
       const em = document.createElement('div');
       em.className = 'cell-emoji';
-      const tagObj = TAGS.find(t => t.label === d.tags[0]);
-      em.textContent = tagObj ? tagObj.emoji : '📌';
+      em.textContent = TAGS.find(t => t.label === d.tags[0])?.emoji || '📌';
       cellEl.insertBefore(em, cellEl.firstChild);
     }
   } else {
@@ -611,91 +605,99 @@ function updateCellVisual(cellEl, key) {
   }
 }
 
-function updateStats() {
-  const count = Object.values(cellData).filter(d => d && (d.note || d.images?.length || d.tags?.length)).length;
-  document.getElementById('headerStats').innerHTML = `<b>${count}</b> casillas<br>anotadas`;
+// ── CREATE MAP ────────────────────────────────────────────────
+function openCreateModal() {
+  document.getElementById('newMapName').value = '';
+  document.getElementById('createOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('newMapName').focus(), 300);
 }
+function closeCreateModal() { document.getElementById('createOverlay').classList.remove('open'); }
 
-// ─── GRID SIZE CONTROLS ──────────────────────────────────────
-function updateSizeButtons() {
-  document.querySelectorAll('.grid-size-btn').forEach(b => b.classList.remove('active'));
-  const match = document.querySelector(`.grid-size-btn[data-size="${gridCols}"]`);
-  if (match && gridCols === gridRows) {
-    match.classList.add('active');
-    document.getElementById('customSizeRow').classList.remove('visible');
-  } else {
-    document.getElementById('btnCustom').classList.add('active');
-    document.getElementById('customSizeRow').classList.add('visible');
-  }
-}
+document.getElementById('sizePresets').addEventListener('click', e => {
+  const btn = e.target.closest('.preset-btn');
+  if (!btn) return;
+  document.querySelectorAll('#sizePresets .preset-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const cols = parseInt(btn.dataset.cols), rows = parseInt(btn.dataset.rows);
+  const customRow = document.getElementById('customSizeRowCreate');
+  if (cols === 0) { customRow.style.display = 'flex'; }
+  else { customRow.style.display = 'none'; createCols = cols; createRows = rows; }
+});
 
-document.querySelectorAll('.grid-size-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const size = btn.dataset.size;
-    if (size === 'custom') {
-      document.querySelectorAll('.grid-size-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('customSizeRow').classList.add('visible');
-      return;
+document.getElementById('btnConfirmCreate').addEventListener('click', async () => {
+  const name = document.getElementById('newMapName').value.trim();
+  if (!name) { showToast('⚠ Enter a map name'); return; }
+  const isCustom = parseInt(document.querySelector('#sizePresets .preset-btn.selected')?.dataset.cols) === 0;
+  let cols = createCols, rows = createRows;
+  if (isCustom) {
+    cols = parseInt(document.getElementById('newMapCols').value);
+    rows = parseInt(document.getElementById('newMapRows').value);
+    if (!cols || !rows || cols < 2 || rows < 2 || cols > 52 || rows > 99) {
+      showToast('⚠ Invalid size'); return;
     }
-    document.querySelectorAll('.grid-size-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('customSizeRow').classList.remove('visible');
-    gridCols = parseInt(size);
-    gridRows = parseInt(size);
-    saveGridSizeToDB();
-    buildGrid();
-  });
-});
-
-document.getElementById('btnApplyCustom').addEventListener('click', () => {
-  const c = parseInt(document.getElementById('customCols').value);
-  const r = parseInt(document.getElementById('customRows').value);
-  if (isNaN(c) || isNaN(r) || c < 2 || r < 2 || c > 52 || r > 99) {
-    showToast('⚠ Tamaño no válido (2–52 cols, 2–99 filas)');
-    return;
   }
-  gridCols = c;
-  gridRows = r;
-  saveGridSizeToDB();
-  buildGrid();
-  showToast(`✓ MAPA ${c}×${r}`);
+  const id = `map_${Date.now()}`;
+  const map = { id, name, cols, rows, createdAt: Date.now() };
+  await dbPut('maps', map);
+  maps.push(map);
+  cellData[id] = {};
+  activeMapId = id;
+  closeCreateModal();
+  render();
+  showToast(`✓ "${name}" CREATED`);
 });
 
-// ─── MODAL ───────────────────────────────────────────────────
-function openModal(x, y) {
-  selectedCell = { x, y, key: `${x}_${y}` };
-  const d = cellData[selectedCell.key] || {};
-  document.getElementById('modalTitle').textContent = `CASILLA ${colName(x)}${y+1}`;
-  document.getElementById('modalCoords').textContent = `${colName(x)}${y+1}`;
+document.getElementById('btnNewTab').addEventListener('click', openCreateModal);
+document.getElementById('btnCreateFirst').addEventListener('click', openCreateModal);
+document.getElementById('createOverlay').addEventListener('click', e => { if (e.target === document.getElementById('createOverlay')) closeCreateModal(); });
+
+// ── DELETE MAP ────────────────────────────────────────────────
+function openDeleteModal(mapId) {
+  pendingDeleteId = mapId;
+  const map = maps.find(m => m.id === mapId);
+  document.getElementById('deleteMapName').textContent = `"${map?.name}"`;
+  document.getElementById('deleteOverlay').classList.add('open');
+}
+function closeDeleteModal() { document.getElementById('deleteOverlay').classList.remove('open'); pendingDeleteId = null; }
+
+document.getElementById('btnConfirmDelete').addEventListener('click', async () => {
+  if (!pendingDeleteId) return;
+  const map = maps.find(m => m.id === pendingDeleteId);
+  await deleteMapDB(pendingDeleteId);
+  maps = maps.filter(m => m.id !== pendingDeleteId);
+  delete cellData[pendingDeleteId];
+  if (activeMapId === pendingDeleteId) activeMapId = maps.length ? maps[maps.length-1].id : null;
+  closeDeleteModal();
+  render();
+  showToast(`🗑 "${map?.name}" DELETED`);
+});
+document.getElementById('deleteOverlay').addEventListener('click', e => { if (e.target === document.getElementById('deleteOverlay')) closeDeleteModal(); });
+
+// ── CELL MODAL ────────────────────────────────────────────────
+function openCellModal(mapId, x, y) {
+  const map = maps.find(m => m.id === mapId);
+  selectedCell = { mapId, x, y, key: `${x}_${y}` };
+  const d = (cellData[mapId] || {})[`${x}_${y}`] || {};
+  document.getElementById('cellModalTitle').textContent = `${map.name} — ${colName(x)}${y+1}`;
+  document.getElementById('cellCoordsBadge').textContent = `${colName(x)}${y+1}`;
   document.getElementById('noteText').value = d.note || '';
   currentTags = new Set(d.tags || []);
-  renderTags();
+  renderTagGrid();
   renderImages(d.images || []);
-  document.getElementById('modalOverlay').classList.add('open');
+  document.getElementById('cellOverlay').classList.add('open');
   setTimeout(() => document.getElementById('noteText').focus(), 300);
 }
+function closeCellModal() { document.getElementById('cellOverlay').classList.remove('open'); selectedCell = null; }
+document.getElementById('cellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('cellOverlay')) closeCellModal(); });
 
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  selectedCell = null;
-}
-
-document.getElementById('modalOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-});
-
-function renderTags() {
+function renderTagGrid() {
   const grid = document.getElementById('tagGrid');
   grid.innerHTML = '';
   TAGS.forEach(t => {
     const btn = document.createElement('button');
     btn.className = 'tag-btn' + (currentTags.has(t.label) ? ' selected' : '');
     btn.innerHTML = `${t.emoji} ${t.label}`;
-    btn.onclick = () => {
-      currentTags.has(t.label) ? currentTags.delete(t.label) : currentTags.add(t.label);
-      renderTags();
-    };
+    btn.onclick = () => { currentTags.has(t.label) ? currentTags.delete(t.label) : currentTags.add(t.label); renderTagGrid(); };
     grid.appendChild(btn);
   });
 }
@@ -707,13 +709,10 @@ function renderImages(images) {
     const wrap = document.createElement('div');
     wrap.className = 'img-thumb';
     const el = document.createElement('img');
-    el.src = img.data;
-    el.alt = img.name || 'captura';
-    el.onclick = () => openLightbox(img.data);
+    el.src = img.data; el.onclick = () => openLightbox(img.data);
     wrap.appendChild(el);
     const del = document.createElement('button');
-    del.className = 'img-delete';
-    del.textContent = '✕';
+    del.className = 'img-delete'; del.textContent = '✕';
     del.onclick = e => { e.stopPropagation(); removeImage(i); };
     wrap.appendChild(del);
     gallery.appendChild(wrap);
@@ -721,134 +720,78 @@ function renderImages(images) {
 }
 
 function removeImage(idx) {
-  const d = cellData[selectedCell.key];
+  if (!selectedCell) return;
+  const d = (cellData[selectedCell.mapId] || {})[selectedCell.key];
   if (d?.images) { d.images.splice(idx, 1); renderImages(d.images); }
 }
 
 async function handleFiles(event) {
-  const files = Array.from(event.target.files);
   if (!selectedCell) return;
-  for (const file of files) {
-    const data = await readFileAsDataURL(file);
-    if (!cellData[selectedCell.key]) cellData[selectedCell.key] = {};
-    if (!cellData[selectedCell.key].images) cellData[selectedCell.key].images = [];
-    cellData[selectedCell.key].images.push({ data, name: file.name });
-    renderImages(cellData[selectedCell.key].images);
+  if (!cellData[selectedCell.mapId]) cellData[selectedCell.mapId] = {};
+  if (!cellData[selectedCell.mapId][selectedCell.key]) cellData[selectedCell.mapId][selectedCell.key] = {};
+  const cell = cellData[selectedCell.mapId][selectedCell.key];
+  if (!cell.images) cell.images = [];
+  for (const file of Array.from(event.target.files)) {
+    const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsDataURL(file); });
+    cell.images.push({ data, name: file.name });
+    renderImages(cell.images);
   }
   event.target.value = '';
-}
-
-function readFileAsDataURL(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = e => res(e.target.result);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
 }
 
 async function saveCell() {
   if (!selectedCell) return;
   const note = document.getElementById('noteText').value.trim();
-  const existing = cellData[selectedCell.key] || {};
+  const existing = (cellData[selectedCell.mapId] || {})[selectedCell.key] || {};
   const data = { note, tags: Array.from(currentTags), images: existing.images || [] };
-  if (!data.note && !data.tags.length && !data.images.length) {
-    delete cellData[selectedCell.key];
-  } else {
-    cellData[selectedCell.key] = data;
-  }
-  await saveCellToDB(selectedCell.key, cellData[selectedCell.key]);
-  const cellEl = document.querySelector(`.cell[data-key="${selectedCell.key}"]`);
-  if (cellEl) updateCellVisual(cellEl, selectedCell.key);
-  updateStats();
-  closeModal();
-  showToast('✓ NOTA GUARDADA');
+  const empty = !data.note && !data.tags.length && !data.images.length;
+  if (!cellData[selectedCell.mapId]) cellData[selectedCell.mapId] = {};
+  if (empty) delete cellData[selectedCell.mapId][selectedCell.key];
+  else cellData[selectedCell.mapId][selectedCell.key] = data;
+  await saveCellDB(selectedCell.mapId, selectedCell.key, empty ? null : data);
+  const cellEl = document.querySelector(`#mapview-${selectedCell.mapId} .cell[data-key="${selectedCell.key}"]`);
+  if (cellEl) applyCellVisual(cellEl, empty ? null : data);
+  renderHeaderStats();
+  closeCellModal();
+  showToast('✓ NOTE SAVED');
 }
 
 async function clearCell() {
   if (!selectedCell) return;
-  if (!confirm('¿Borrar toda la información de esta casilla?')) return;
-  delete cellData[selectedCell.key];
-  await saveCellToDB(selectedCell.key, null);
-  const cellEl = document.querySelector(`.cell[data-key="${selectedCell.key}"]`);
-  if (cellEl) updateCellVisual(cellEl, selectedCell.key);
-  updateStats();
-  closeModal();
-  showToast('🗑 CASILLA BORRADA');
+  if (!confirm('Delete all data for this cell?')) return;
+  if (cellData[selectedCell.mapId]) delete cellData[selectedCell.mapId][selectedCell.key];
+  await saveCellDB(selectedCell.mapId, selectedCell.key, null);
+  const cellEl = document.querySelector(`#mapview-${selectedCell.mapId} .cell[data-key="${selectedCell.key}"]`);
+  if (cellEl) applyCellVisual(cellEl, null);
+  renderHeaderStats();
+  closeCellModal();
+  showToast('🗑 CELL CLEARED');
 }
 
-// ─── LIGHTBOX ────────────────────────────────────────────────
-function openLightbox(src) {
-  document.getElementById('lightboxImg').src = src;
-  document.getElementById('lightbox').classList.add('open');
-}
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('open');
-  document.getElementById('lightboxImg').src = '';
-}
+// ── LIGHTBOX ─────────────────────────────────────────────────
+function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').classList.add('open'); }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); document.getElementById('lightboxImg').src = ''; }
 
-// ─── TOAST ───────────────────────────────────────────────────
+// ── TOAST ─────────────────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-// ─── DRAG & DROP ─────────────────────────────────────────────
-const uploadArea = document.getElementById('uploadArea');
-uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
-uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
-uploadArea.addEventListener('drop', e => {
-  e.preventDefault();
-  uploadArea.classList.remove('dragover');
-  const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
-  if (!cellData[selectedCell.key]) cellData[selectedCell.key] = {};
-  if (!cellData[selectedCell.key].images) cellData[selectedCell.key].images = [];
-  files.forEach(async f => {
-    const data = await readFileAsDataURL(f);
-    cellData[selectedCell.key].images.push({ data, name: f.name });
-    renderImages(cellData[selectedCell.key].images);
-  });
-});
-
-// ─── PWA INSTALL ─────────────────────────────────────────────
+// ── PWA ───────────────────────────────────────────────────────
 let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; document.getElementById('installBanner').classList.add('visible'); });
+document.getElementById('btnInstall').addEventListener('click', async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBanner').classList.remove('visible'); });
+document.getElementById('btnDismiss').addEventListener('click', () => document.getElementById('installBanner').classList.remove('visible'));
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  document.getElementById('installBanner').classList.add('visible');
-});
-
-document.getElementById('btnInstall').addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const result = await deferredPrompt.userChoice;
-  deferredPrompt = null;
-  document.getElementById('installBanner').classList.remove('visible');
-  if (result.outcome === 'accepted') showToast('✓ APP INSTALADA');
-});
-
-document.getElementById('btnDismiss').addEventListener('click', () => {
-  document.getElementById('installBanner').classList.remove('visible');
-});
-
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBanner').classList.remove('visible');
-  showToast('✓ APP INSTALADA');
-});
-
-// ─── SERVICE WORKER ─────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(() => {});
-}
-
-// ─── INIT ────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────
 (async () => {
   await openDB();
-  await loadData();
-  buildGrid();
+  await loadAll();
+  activeMapId = maps.length ? maps[maps.length-1].id : null;
+  render();
 })();
 </script>
 </body>
