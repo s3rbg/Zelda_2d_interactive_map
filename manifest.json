@@ -1,7 +1,7 @@
 {
-  "name": "Oracle of Seasons — Mapa",
-  "short_name": "OoS Mapa",
-  "description": "Mapa interactivo con notas para Zelda 2D",
+  "name": "Zelda 2D - Interactive Maps",
+  "short_name": "TLoZ Maps",
+  "description": "Interactive Maps to take notes for 2D Zelda Games",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0a0f1e",
