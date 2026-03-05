@@ -1,0 +1,18 @@
+{
+  "name": "Oracle of Seasons — Mapa",
+  "short_name": "OoS Mapa",
+  "description": "Mapa interactivo con notas para Oracle of Seasons",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0f1e",
+  "theme_color": "#166534",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
