@@ -8,6 +8,8 @@
   <line x1="120" y1="8" x2="120" y2="184" stroke="#2a4a2a" stroke-width="2"/>
   <!-- Highlighted cell -->
   <rect x="72" y="72" width="48" height="48" fill="#1a3a0e" stroke="#4ade80" stroke-width="3"/>
-  <!-- Leaf icon -->
-  <text x="96" y="108" font-size="32" text-anchor="middle" fill="#4ade80">🍂</text>
+  <!-- Triforce -->
+  <polygon points="96,54 114,84 78,84" fill="#fbbf24"/>
+  <polygon points="78,84 96,114 60,114" fill="#fbbf24"/>
+  <polygon points="114,84 132,114 96,114" fill="#fbbf24"/>
 </svg>
